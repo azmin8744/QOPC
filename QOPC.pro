@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT       += xml
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 greaterThan(QT_MAJOR_VERSION, 4.4): QT += network
@@ -30,7 +31,8 @@ SOURCES += \
 
 HEADERS += \
         mainwindow.h \
-    qopc.h
+    qopc.h \
+    qopceventclient.h
 
 FORMS += \
         mainwindow.ui

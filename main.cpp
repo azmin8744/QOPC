@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 
 
     QOPC *qopc = new QOPC;
-    qopc->getConnectMode();
+    qopc->negotiate();
 
     return a.exec();
 }
