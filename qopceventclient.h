@@ -21,8 +21,9 @@ public:
     }
     virtual ~QOPCEventClient() {}
 
-    void connectToServer(QHostAddress &host, qint16 &port)
+    void connectToServer(QHostAddress host, qint16 port)
     {
+        qDebug() << "connect to " + host.toString() + ", port:" + port;
         socket.connectToHost(host, port);
         nextBlockSize = 0;
     }
@@ -30,11 +31,16 @@ public:
     QString message;
 signals:
     void done();
+    void received();
 
 private slots:
-    void sendRequest() {}
+    void sendRequest()
+    {
+        qDebug() << "event notification port opened.";
+    }
     void updateMessage()
     {
+        qDebug() << "received";
         QDataStream in(&socket);
         in.setVersion(QDataStream::Qt_4_1);
 
@@ -55,10 +61,13 @@ private slots:
 
             nextBlockSize = 0;
         }
+        emit received();
+
     }
     void error()
     {
         message = socket.errorString();
+        qDebug() << message;
         socket.close();
         emit done();
     }
