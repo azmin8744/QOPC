@@ -25,7 +25,6 @@ public:
     {
         qDebug() << "connect to " + host.toString() + ", port:" + port;
         socket.connectToHost(host, port);
-        nextBlockSize = 0;
     }
 
     QString message;
@@ -40,6 +39,7 @@ private slots:
     }
     void updateMessage()
     {
+        message.clear();
         qDebug() << "received";
         QDataStream in(&socket);
         in.setVersion(QDataStream::Qt_4_1);
@@ -51,8 +51,7 @@ private slots:
 
         quint8 appId = rawMessage[0];
         quint8 eventId = rawMessage[1];
-        quint16 eventBodyLength = rawMessage[2] << sizeof(rawMessage[2]);
-        eventBodyLength | rawMessage[3];
+        quint16 eventBodyLength = rawMessage[2] << sizeof(rawMessage[2]) | rawMessage[3];
 
         qDebug() << "appId: " << appId;
         qDebug() << "eventId" << eventId;
@@ -81,5 +80,4 @@ private slots:
 
 private:
     QTcpSocket socket;
-    qint16 nextBlockSize;
 };
