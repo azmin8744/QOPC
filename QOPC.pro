@@ -32,7 +32,8 @@ SOURCES += \
 HEADERS += \
         mainwindow.h \
     qopc.h \
-    qopceventclient.h
+    qopceventclient.h \
+    qopcliveviewclient.h
 
 FORMS += \
         mainwindow.ui
