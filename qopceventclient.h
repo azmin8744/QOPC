@@ -43,24 +43,25 @@ private slots:
         qDebug() << "received";
         QDataStream in(&socket);
         in.setVersion(QDataStream::Qt_4_1);
+        in.setByteOrder(QDataStream::BigEndian);
+        int messageLength = socket.bytesAvailable();
+        char* rawMessage = new char[messageLength];
 
-        forever {
-            if (nextBlockSize == 0) {
-                if (socket.bytesAvailable() < sizeof(quint16))
-                    break;
-                in >> nextBlockSize;
-            }
-            if (nextBlockSize == 0xFFFF) {
-                socket.close();
-                break;
-            }
-            if (socket.bytesAvailable() < nextBlockSize)
-                break;
+        in.readRawData(rawMessage, messageLength);
 
-            in >> message;
+        quint8 appId = rawMessage[0];
+        quint8 eventId = rawMessage[1];
+        quint16 eventBodyLength = rawMessage[2] << sizeof(rawMessage[2]);
+        eventBodyLength | rawMessage[3];
 
-            nextBlockSize = 0;
+        qDebug() << "appId: " << appId;
+        qDebug() << "eventId" << eventId;
+        qDebug() << "eventBodyLength " << eventBodyLength;
+        if (eventBodyLength != 0)
+        {
+            message = QString(&rawMessage[4]);
         }
+        delete rawMessage;
         emit received();
 
     }
