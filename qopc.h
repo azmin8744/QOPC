@@ -9,6 +9,7 @@
 #include <QUrl>
 #include <QtXml/QtXml>
 #include <qopceventclient.h>
+#include <qopcliveviewclient.h>
 
 class QOPC : public QObject
 {
@@ -27,7 +28,6 @@ public:
 
         qDebug() << "get req finished.";
         if(reply->error() != QNetworkReply::NoError) return;
-        QByteArray responseBody = reply->readAll();
         QDomDocument doc;
         doc.setContent(responseBody);
         qDebug() << doc.toString();
@@ -51,19 +51,23 @@ public:
 
         // 動作モード切り替え（スタンドアロン）
         qDebug() << "動作モード切り替え";
-        switchCameraMode();
+        QEventLoop loop4;
+        switchCameraMode("standalone", &loop4);
+        loop4.exec();
+
 
         // 動作モード切り替え（撮影モード）
         qDebug() << "撮影モードに切り替え";
-        QEventLoop loop4;
-        switchCameraMode("rec", &loop4);
-        loop4.exec();
+        QEventLoop loop5;
+        QUrlQuery param;
+        param.addQueryItem("lvqty", "0640x0480");
+        switchCameraMode("rec", &loop5, &param);
+        loop5.exec();
         if(reply->error() != QNetworkReply::NoError) return;
+        // カメラモード切替通知がきたらライブビュー転送を開始する
 
-        responseBody = reply->readAll();
-        doc.setContent(responseBody);
-        qDebug() << doc.toString();
-
+        connect(&eventClient, &QOPCEventClient::cameramode, this, &QOPC::startLiveView);
+        //connect(&liveViewClient, &QOPCLiveViewClient::started, [=](){QObject::disconnect(&eventClient, SIGNAL(QOPCEventClient::cameramode()), this, 0);});
     }
 
     // 接続モード取得
@@ -83,23 +87,40 @@ public:
     // カメライベント通知開始
     void startPushEvent(QEventLoop* loop = Q_NULLPTR)
     {
-        QString path = "/start_pushevent.cgi?port=" + eventPort;\
-        execCommand(path, loop);
+        QString path = "/start_pushevent.cgi";\
+        QUrlQuery query;
+        query.addQueryItem("port", eventPort);
+        execCommand(path, loop, &query);
     }
 
     // 動作モード切り替え
-    void switchCameraMode(QString mode = "standalone", QEventLoop* loop = Q_NULLPTR)
+    void switchCameraMode(QString mode = "standalone",QEventLoop* loop = Q_NULLPTR, QUrlQuery* param = Q_NULLPTR)
     {
-        QString path = "/switch_cameramode.cgi?mode=" + mode;
-        execCommand(path, loop);
+        QString path = "/switch_cameramode.cgi";
+        QUrlQuery query;
+        query.addQueryItem("mode", mode);
+        if(param != Q_NULLPTR)
+        {
+            QList<QPair<QString, QString>> option = param->queryItems();
+            for(QPair<QString, QString> entry : option)
+            {
+                query.addQueryItem(entry.first, entry.second);
+            }
+        }
+        execCommand(path, loop, &query);
     }
 
     // コマンド実行
     // 同期通信を行う場合はQEventLoop*を渡す
-    void execCommand(QString &path, QEventLoop* loop = Q_NULLPTR)
+    void execCommand(const QString &path, QEventLoop* loop = Q_NULLPTR, const QUrlQuery *query = Q_NULLPTR)
     {
         QUrl url("http://192.168.0.10");
         url.setPath(path);
+        if (query != Q_NULLPTR)
+        {
+            url.setQuery(query->toString());
+        }
+
         QNetworkRequest request(url);
         request.setRawHeader("User-Agent", "OlympusCameraKit");
 
@@ -118,9 +139,34 @@ private slots:
 
         if(reply->error() != QNetworkReply::NoError) return;
         qDebug() << reply->url().toString();
+        QString contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString();
         qDebug() << reply->header(QNetworkRequest::ContentTypeHeader).toString();
+
+        if(contentType == "text/xml")
+        {
+            responseBody = reply->readAll();
+            QDomDocument doc;
+            doc.setContent(responseBody);
+            qDebug() << doc.toString();
+        }
+
         int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
         qDebug() << QVariant(statusCode).toString();
+    }
+
+    // ライブビュー画像転送開始
+    void startLiveView()
+    {
+        qDebug() << "ライブビュー転送ポートオープン";
+        // 転送ポートオープン
+        liveViewClient.bind(QHostAddress(hostAddress), liveViewPort.toInt());
+
+        // ライブビュー転送開始コマンド送出
+        QString path = "/exec_takemisc.cgi";
+        QUrlQuery query;
+        query.addQueryItem("com", "startliveview");
+        query.addQueryItem("port", liveViewPort);
+        execCommand(path, Q_NULLPTR, &query);
     }
 
     void cameraEventReceived()
@@ -131,6 +177,9 @@ private:
     QNetworkAccessManager qnam;
     QNetworkReply *reply;
     QOPCEventClient eventClient;
+    QOPCLiveViewClient liveViewClient;
+    QByteArray responseBody;
     const QString hostAddress = "192.168.0.10";
     const QString eventPort = "65000";
+    const QString liveViewPort = "5555";
 };

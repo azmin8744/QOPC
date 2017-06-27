@@ -17,7 +17,7 @@ public:
         connect(&socket, &QTcpSocket::connected, this, &QOPCEventClient::sendRequest);
         connect(&socket, &QTcpSocket::disconnected, this, &QOPCEventClient::closeConnection);
         connect(&socket, &QTcpSocket::readyRead, this, &QOPCEventClient::updateMessage);
-        connect(&socket, static_cast<void(QAbstractSocket::*)(QAbstractSocket::SocketError)>(&QAbstractSocket::error), this, &QOPCEventClient::error);
+        connect(&socket, static_cast<void(QAbstractSocket::*)(QAbstractSocket::SocketError)>(&QAbstractSocket::error), this, &QOPCEventClient::socketError);
     }
     virtual ~QOPCEventClient() {}
 
@@ -31,6 +31,8 @@ public:
 signals:
     void done();
     void received();
+    void error();
+    void cameramode();
 
 private slots:
     void sendRequest()
@@ -60,11 +62,27 @@ private slots:
         {
             message = QString(&rawMessage[4]);
         }
-        delete rawMessage;
+        delete[] rawMessage;
+
+        if(appId != 2)
+        {
+            emit error();
+            return;
+        }
+
         emit received();
 
+        switch (eventId) {
+        case 201:
+            qDebug() << "cameramode.";
+            emit cameramode();
+            break;
+        default:
+            break;
+        }
     }
-    void error()
+
+    void socketError()
     {
         message = socket.errorString();
         qDebug() << message;
