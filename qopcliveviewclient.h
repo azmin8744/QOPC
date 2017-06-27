@@ -6,6 +6,7 @@
 #include <QUdpSocket>
 #include <QDataStream>
 #include <QBitArray>
+#include <QImage>
 
 class QOPCLiveViewClient : public QObject {
     Q_OBJECT
@@ -29,31 +30,41 @@ public:
 
 signals:
     void started();
+    void jpgFrameUpdated(QImage frame);
 private slots:
     void processDatagram()
     {
-        qDebug() << "readyRead.";
         QByteArray datagram;
-        const quint32 rtpHeaderSize = 32;
-
-
+        const qint32 rtpHeaderLength = 12;
+        const qint32 extensionHeaderByteLength = 4;
         while(socket.hasPendingDatagrams())
         {
             datagram.resize(socket.pendingDatagramSize());
             socket.readDatagram(datagram.data(), datagram.size());
 
-            // RTPヘッダを取り出す
-            QDataStream stream(&datagram, QIODevice::ReadWrite);
-            QBitArray rtpHeader;
-            stream << rtpHeaderSize << datagram;
-            stream.device()->reset();
-            stream >> rtpHeader;
+            // 拡張ヘッダを持つかどうか
+            bool hasExtensionHeader = datagram[0] & 0x10;
+            if(hasExtensionHeader)
+            {
+                jpgFrame.loadFromData(jpgBuffer);
+                emit jpgFrameUpdated(jpgFrame);
 
-            qDebug() << "output bits" << rtpHeader;
+                int extensionWordLength = datagram.data()[14] << sizeof(char) | datagram.data()[15];
+                int extensionByteLength = extensionWordLength * 4;
+
+                jpgBuffer.clear();
+                int headerSize = rtpHeaderLength + extensionByteLength + extensionHeaderByteLength;
+                jpgBuffer.append(&datagram.data()[headerSize], datagram.size() - headerSize);
+            }
+            else
+            {
+                jpgBuffer.append(&datagram.data()[rtpHeaderLength], datagram.size() - rtpHeaderLength);
+            }
         }
     }
 
 private:
     QUdpSocket socket;
-
+    QImage jpgFrame;
+    QByteArray jpgBuffer;
 };

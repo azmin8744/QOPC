@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
+#include <qopc.h>
 namespace Ui {
 class MainWindow;
 }
@@ -14,9 +14,11 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-
+private slots:
+    void liveViewUpdate(QImage frame);
 private:
     Ui::MainWindow *ui;
+    QOPC qopc;
 };
 
 #endif // MAINWINDOW_H

@@ -17,7 +17,9 @@ class QOPC : public QObject
 public:
     explicit QOPC(QObject* parent = Q_NULLPTR): QObject(parent) {
         connect(&qnam, &QNetworkAccessManager::finished, this, &QOPC::commandfinished );
+        connect(&liveViewClient, &QOPCLiveViewClient::jpgFrameUpdated, this, &QOPC::updateLiveViewFrame);
     }
+
     virtual ~QOPC() {}
 
     void negotiate()
@@ -131,7 +133,8 @@ public:
 
         reply = qnam.get(request);
     }
-
+signals:
+    void jpgFrameUpdated(QImage frame);
 private slots:
     void commandfinished()
     {
@@ -172,6 +175,11 @@ private slots:
     void cameraEventReceived()
     {
         qDebug() << eventClient.message;
+    }
+
+    void updateLiveViewFrame(QImage frame)
+    {
+        emit jpgFrameUpdated(frame);
     }
 private:
     QNetworkAccessManager qnam;
