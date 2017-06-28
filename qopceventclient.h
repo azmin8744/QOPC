@@ -27,6 +27,11 @@ public:
         socket.connectToHost(host, port);
     }
 
+    void disconnectFromServer()
+    {
+        socket.close();
+    }
+
     QString message;
 signals:
     void done();

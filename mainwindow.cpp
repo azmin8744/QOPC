@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    qopc.closeConnection();
     delete ui;
 }
 

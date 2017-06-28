@@ -28,6 +28,11 @@ public:
         }
     }
 
+    void abort()
+    {
+        socket.abort();
+    }
+
 signals:
     void started();
     void jpgFrameUpdated(QImage frame);
@@ -51,10 +56,9 @@ private slots:
 
                 int extensionWordLength = datagram.data()[14] << sizeof(char) | datagram.data()[15];
                 int extensionByteLength = extensionWordLength * 4;
-
-                jpgBuffer.clear();
                 int headerSize = rtpHeaderLength + extensionByteLength + extensionHeaderByteLength;
-                jpgBuffer.append(&datagram.data()[headerSize], datagram.size() - headerSize);
+
+                jpgBuffer = QByteArray(&datagram.data()[headerSize], datagram.size() - headerSize);
             }
             else
             {

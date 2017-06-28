@@ -72,6 +72,15 @@ public:
         //connect(&liveViewClient, &QOPCLiveViewClient::started, [=](){QObject::disconnect(&eventClient, SIGNAL(QOPCEventClient::cameramode()), this, 0);});
     }
 
+    void closeConnection()
+    {
+        stopLiveView();
+        stopPushEvent();
+        liveViewClient.abort();
+        eventClient.disconnectFromServer();
+        switchCameraMode();
+    }
+
     // 接続モード取得
     void getConnectMode(QEventLoop* loop = Q_NULLPTR)
     {
@@ -112,6 +121,30 @@ public:
         execCommand(path, loop, &query);
     }
 
+    // イベント通知終了
+    void stopPushEvent(QEventLoop* loop = Q_NULLPTR)
+    {
+        QString path = "/stop_pushevent.cgi";
+        execCommand(path, loop);
+    }
+
+    // ライブビュー画像転送停止
+    void stopLiveView()
+    {
+        QUrlQuery query;
+        query.addQueryItem("com", "stopliveview");
+        execTakeMisc(&query);
+    }
+
+    // 撮影補助コマンドを送出する
+    // クエリにcomは必須
+    void execTakeMisc(QUrlQuery* query, QEventLoop* loop = Q_NULLPTR)
+    {
+        if(!query->hasQueryItem("com")) return;
+        QString path = "/exec_takemisc.cgi";
+        execCommand(path, loop, query);
+    }
+
     // コマンド実行
     // 同期通信を行う場合はQEventLoop*を渡す
     void execCommand(const QString &path, QEventLoop* loop = Q_NULLPTR, const QUrlQuery *query = Q_NULLPTR)
@@ -133,6 +166,7 @@ public:
 
         reply = qnam.get(request);
     }
+
 signals:
     void jpgFrameUpdated(QImage frame);
 private slots:
@@ -165,11 +199,10 @@ private slots:
         liveViewClient.bind(QHostAddress(hostAddress), liveViewPort.toInt());
 
         // ライブビュー転送開始コマンド送出
-        QString path = "/exec_takemisc.cgi";
         QUrlQuery query;
         query.addQueryItem("com", "startliveview");
         query.addQueryItem("port", liveViewPort);
-        execCommand(path, Q_NULLPTR, &query);
+        execTakeMisc(&query);
     }
 
     void cameraEventReceived()
