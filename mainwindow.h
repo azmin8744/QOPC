@@ -16,6 +16,7 @@ public:
     ~MainWindow();
 private slots:
     void liveViewUpdate(QImage frame);
+    void singleShot();
 private:
     Ui::MainWindow *ui;
     QOPC qopc;

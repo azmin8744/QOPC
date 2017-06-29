@@ -7,6 +7,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     connect(&qopc, &QOPC::jpgFrameUpdated, this, &MainWindow::liveViewUpdate);
+    connect(ui->shutterButton, &QPushButton::clicked, this, &MainWindow::singleShot);
     qopc.negotiate();
 }
 
@@ -20,4 +21,9 @@ void MainWindow::liveViewUpdate(QImage frame)
 {
     ui->liveViewFrame->setPixmap(QPixmap::fromImage(frame));
     ui->liveViewFrame->repaint();
+}
+
+void MainWindow::singleShot()
+{
+    qopc.singleShot();
 }
