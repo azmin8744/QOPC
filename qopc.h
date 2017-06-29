@@ -128,6 +128,13 @@ public:
         execCommand(path, loop);
     }
 
+    // 撮影制御
+    void execTakeMotion(QUrlQuery* query, QEventLoop* loop = Q_NULLPTR)
+    {
+        QString path = "/exec_takemotion.cgi";
+        execCommand(path, loop, query);
+    }
+
     // ライブビュー画像転送停止
     void stopLiveView()
     {
@@ -169,6 +176,19 @@ public:
 
 signals:
     void jpgFrameUpdated(QImage frame);
+public slots:
+    // 単写
+    void singleShot(QPair<int, int> *afpoint = Q_NULLPTR, QEventLoop* event = Q_NULLPTR)
+    {
+        QUrlQuery query;
+        query.addQueryItem("com", "newstarttake");
+        if(afpoint != Q_NULLPTR)
+        {
+            QString coodinate = QString("%1x%2").arg(afpoint->first, 4, 10, QChar('0')).arg(afpoint->second, 4, 10, QChar('0'));
+            query.addQueryItem("point", coodinate);
+        }
+        execTakeMotion(&query, event);
+    }
 private slots:
     void commandfinished()
     {
