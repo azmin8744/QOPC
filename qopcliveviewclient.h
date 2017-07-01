@@ -58,6 +58,9 @@ private slots:
                 int extensionByteLength = extensionWordLength * 4;
                 int headerSize = rtpHeaderLength + extensionByteLength + extensionHeaderByteLength;
 
+                // 拡張ヘッダを新たなQByteArrayにして処理
+                processExtensionHeader(QByteArray(&datagram.data()[rtpHeaderLength], extensionHeaderByteLength + extensionByteLength));
+                // ライブビュー画像の新たなバッファを作る
                 jpgBuffer = QByteArray(&datagram.data()[headerSize], datagram.size() - headerSize);
             }
             else
@@ -68,6 +71,11 @@ private slots:
     }
 
 private:
+    void processExtensionHeader(QByteArray extensionHeader)
+    {
+        // 拡張ヘッダの内容を構造体に入れる
+    }
+
     QUdpSocket socket;
     QImage jpgFrame;
     QByteArray jpgBuffer;
