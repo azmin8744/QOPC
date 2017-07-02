@@ -16,6 +16,7 @@ public:
     ~MainWindow();
 private slots:
     void liveViewUpdate(QImage frame);
+    void finderInfoUpdate(QOPCLiveViewClient::FinderInformation finderInfo);
     void singleShot();
 private:
     Ui::MainWindow *ui;
