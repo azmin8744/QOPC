@@ -18,6 +18,7 @@ public:
     explicit QOPC(QObject* parent = Q_NULLPTR): QObject(parent) {
         connect(&qnam, &QNetworkAccessManager::finished, this, &QOPC::commandfinished );
         connect(&liveViewClient, &QOPCLiveViewClient::jpgFrameUpdated, this, &QOPC::updateLiveViewFrame);
+        connect(&liveViewClient, &QOPCLiveViewClient::finderInfoUpdated, this, &QOPC::finderInfoUpdated);
     }
 
     virtual ~QOPC() {}
@@ -176,6 +177,7 @@ public:
 
 signals:
     void jpgFrameUpdated(QImage frame);
+    void finderInfoUpdated(QOPCLiveViewClient::FinderInformation finderInfo);
 public slots:
     // 単写
     void singleShot(QPair<int, int> *afpoint = Q_NULLPTR, QEventLoop* event = Q_NULLPTR)
@@ -233,6 +235,11 @@ private slots:
     void updateLiveViewFrame(QImage frame)
     {
         emit jpgFrameUpdated(frame);
+    }
+
+    void updateFinderInfo(QOPCLiveViewClient::FinderInformation finderInfo)
+    {
+        emit finderInfoUpdated(finderInfo);
     }
 private:
     QNetworkAccessManager qnam;
