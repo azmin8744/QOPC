@@ -106,8 +106,7 @@ private:
     // extensionHeaderは拡張ヘッダ部の先頭4バイトを抜いたもの
     void processExtensionHeader(QByteArray* extensionHeaderArray)
     {
-        QDataStream extensionHeader;
-        extensionHeader << extensionHeaderArray->size() << extensionHeaderArray->data();
+        QDataStream extensionHeader(extensionHeaderArray, QIODevice::ReadOnly);
         quint16 functionId;
         quint16 length;
         FinderInformation finderInfo;
