@@ -26,7 +26,21 @@ void MainWindow::liveViewUpdate(QImage frame)
 
 void MainWindow::finderInfoUpdate(QOPCLiveViewClient::FinderInformation finderInfo)
 {
-    ui->fNumber->setText(QString("f%1").arg(finderInfo.currentApertureValue / 10));
+    // F値
+    double fNumber = (double)finderInfo.currentApertureValue / 10;
+    ui->fNumber->setText(QString("f%1").arg(fNumber, 3, 'f', 1));
+
+    // SS
+    int numerator = finderInfo.currentSSNumerator;      // 分子
+    int denominator = finderInfo.currentSSDenominator;  // 分母
+    if(numerator == 1)
+    {
+        ui->shutterSpeed->setText(QString("1/%1").arg(denominator));
+    }
+    else
+    {
+        ui->shutterSpeed->setText(QString("%1s").arg(numerator));
+    }
 }
 
 void MainWindow::singleShot()
