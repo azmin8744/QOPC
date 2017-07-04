@@ -60,6 +60,7 @@ public:
         signed int currentExpCompansation; // 露出補正の現在値
         int currentISOValue;
         bool isISOAuto;
+        bool isISOLow;
         bool extendedISOWarning;
     };
 signals:
@@ -130,6 +131,13 @@ private:
                     extensionHeader >> finderInfo.minApertureValue;
                     extensionHeader >> finderInfo.currentApertureValue;
                     break;
+                case 12: // ISO感度
+                    extensionHeader >> finderInfo.currentISOValue;
+                    quint16 isISOAuto;
+                    extensionHeader >> isISOAuto >> finderInfo.isISOAuto;
+                    extensionHeader.skipRawData(2);
+                    quint32 isISOExtendedWarning;
+                    extensionHeader >> isISOExtendedWarning >> finderInfo.extendedISOWarning;
                 default:
                     extensionHeader.skipRawData(byteLength);
             }
