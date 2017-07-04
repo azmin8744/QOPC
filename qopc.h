@@ -218,7 +218,7 @@ private slots:
     {
         qDebug() << "ライブビュー転送ポートオープン";
         // 転送ポートオープン
-        liveViewClient.bind(QHostAddress(hostAddress), liveViewPort.toInt());
+        liveViewClient.bind(liveViewPort.toInt());
 
         // ライブビュー転送開始コマンド送出
         QUrlQuery query;

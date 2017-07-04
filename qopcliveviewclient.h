@@ -16,7 +16,7 @@ public:
 
     virtual ~QOPCLiveViewClient() {}
 
-    void bind(const QHostAddress& address, const int &port)
+    void bind(const int &port)
     {
         qDebug() << socket.bind(port);
         connect(&socket, &QUdpSocket::readyRead, this, &QOPCLiveViewClient::processDatagram);
