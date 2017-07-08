@@ -138,6 +138,7 @@ private:
                     extensionHeader.skipRawData(2);
                     quint32 isISOExtendedWarning;
                     extensionHeader >> isISOExtendedWarning >> finderInfo.extendedISOWarning;
+                    finderInfo.isISOLow = finderInfo.currentISOValue == 0xFFFE;
                 default:
                     extensionHeader.skipRawData(byteLength);
             }
