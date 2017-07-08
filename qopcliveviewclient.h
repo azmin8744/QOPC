@@ -134,7 +134,8 @@ private:
                 case 12: // ISO感度
                     extensionHeader >> finderInfo.currentISOValue;
                     quint16 isISOAuto;
-                    extensionHeader >> isISOAuto >> finderInfo.isISOAuto;
+                    extensionHeader >> isISOAuto;
+                    finderInfo.isISOAuto = isISOAuto;
                     extensionHeader.skipRawData(2);
                     quint32 isISOExtendedWarning;
                     extensionHeader >> isISOExtendedWarning >> finderInfo.extendedISOWarning;

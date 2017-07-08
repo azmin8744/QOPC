@@ -41,6 +41,11 @@ void MainWindow::finderInfoUpdate(QOPCLiveViewClient::FinderInformation finderIn
     {
         ui->shutterSpeed->setText(QString("%1s").arg(numerator));
     }
+    // ISO感度
+    QString isoIndicator = finderInfo.isISOAuto ? "ISO Auto" : "ISO";
+    QString isoValue = finderInfo.isISOLow ? "LOW" : QString("%1").arg(finderInfo.currentISOValue);
+    ui->ISOIndicator->setText(isoIndicator);
+    ui->ISOValueIndicator->setText(isoValue);
 }
 
 void MainWindow::singleShot()
